@@ -20,14 +20,23 @@ const submitApplication = async (req, res, next) => {
   }
 };
 
-const payFee = async (req, res, next) => {
+const createFeeOrder = async (req, res, next) => {
   try {
-    const result = await applicationService.payApplicationFee(req.user.id, req.params.applicationId, req.body);
-    res.status(200).json({ success: true, message: 'Payment successful, application submitted', ...result });
+    const result = await applicationService.createFeeOrder(req.user.id, req.params.applicationId, req.body);
+    res.status(200).json({ success: true, message: 'Fee Order generated', ...result });
   } catch (err) {
     next(err);
   }
 };
+
+const verifyFeePayment = async(req,res,next) => {
+  try{
+    const result = await applicationService.verifyFeePayment(req.user.id,req.params.applicationId,req.body);
+    res.status(200).json({success: true, message: 'Payment verified', ...result})
+  } catch (err){
+    next(err);
+  }
+}
 
 const getMyApplications = async (req, res, next) => {
   try {
@@ -131,7 +140,8 @@ const verifyDocument = async (req, res, next) => {
 module.exports = {
   saveDraft,
   submitApplication,
-  payFee,
+  createFeeOrder,
+  verifyFeePayment,
   getMyApplications,
   getApplicationDetails,
   uploadDocument,

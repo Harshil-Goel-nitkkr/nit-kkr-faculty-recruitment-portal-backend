@@ -4,7 +4,9 @@ const jobRepository = require('../repository/job.repository');
 const userRepository = require('../repository/user.repository');
 const { sendMail } = require('../config/mailer');
 const AppError = require('../utils/AppError');
-const { v4: uuidv4 } = require('uuid');
+const config = require('../config/index');
+const crypto = require('crypto');
+const Razorpay = require('razorpay');
 
 // Creates or updates a draft application (prefilled from profile, user can edit before submitting)
 const saveDraft = async (userId, jobId, formData) => {
@@ -71,31 +73,50 @@ const submitApplication = async (userId, applicationId) => {
   return updated;
 };
 
-// Mocked secure payment handled within the portal.
-// Replace processGatewayPayment with a real gateway (Razorpay/Stripe) integration.
-const payApplicationFee = async (userId, applicationId, paymentDetails) => {
+// payment gateway with razorpay integeration
+
+const createFeeOrder = async(userId, applicationId, paymentDetails) => {
   const application = await applicationRepository.findById(applicationId);
   if (!application) throw new AppError('Application not found', 404);
   if (String(application.user._id) !== String(userId)) throw new AppError('Not authorized', 403);
   if (application.fee.isPaid) throw new AppError('Fee already paid for this application', 400);
-
-  // --- mock payment gateway call ---
-  const transactionId = `TXN-${uuidv4()}`;
-  // In production: verify paymentDetails.signature against gateway secret here.
-  // --- end mock ---
-
-  const updated = await applicationRepository.updateById(applicationId, {
-    'fee.isPaid': true,
-    'fee.paidDate': new Date(),
-    'fee.transactionId': transactionId,
-    status: 'SUBMITTED',
-    isDraft: false,
-    appliedDate: new Date(),
-    $push: { statusHistory: { status: 'SUBMITTED', note: 'Fee paid and application submitted' } },
+  
+  var instance = new Razorpay({ key_id: config.payment.razorpay_keyId, key_secret: config.payment.razorpay_keySecret });
+  
+  const order = await instance.orders.create({
+    amount: parseInt(paymentDetails.amount), // in paise
+    currency: "INR",
   });
 
-  return { application: updated, transactionId };
-};
+  return order;
+}
+
+const verifyFeePayment = async(userId, applicationId, paymentDetails) => {
+  const transactionId = paymentDetails.Razorpay_payment_id;
+
+  const generatedSignature = crypto
+    .createHmac("sha256", config.payment.razorpay_keySecret)
+    .update(`${paymentDetails.razorpay_order_id}|${paymentDetails.razorpay_payment_id}`)
+    .digest("hex");
+
+  if (generatedSignature === paymentDetails.razorpay_signature) {
+    console.log("hello");
+    const updated = await applicationRepository.updateById(applicationId, {
+      'fee.isPaid': true,
+      'fee.paidDate': new Date(),
+      'fee.transactionId': transactionId,
+      status: 'SUBMITTED',
+      isDraft: false,
+      appliedDate: new Date(),
+      $push: { statusHistory: { status: 'SUBMITTED', note: 'Fee paid and application submitted' } },
+    });
+    return { application: updated, transactionId };
+  } else {
+    throw new AppError('Payment not Failed', 402)
+  }
+
+  
+}
 
 const getMyApplications = async (userId) => applicationRepository.findAllByUser(userId);
 
@@ -202,7 +223,8 @@ const verifyDocument = async (applicationId, documentId, status, rejectionReason
 module.exports = {
   saveDraft,
   submitApplication,
-  payApplicationFee,
+  createFeeOrder,
+  verifyFeePayment,
   getMyApplications,
   getApplicationDetails,
   uploadShortlistDocument,

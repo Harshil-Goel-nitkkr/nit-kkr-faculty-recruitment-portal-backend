@@ -18,6 +18,7 @@ app.use(
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.text());
 app.use(cookieParser());
 
 // static serving for uploaded resumes/documents/offer letters

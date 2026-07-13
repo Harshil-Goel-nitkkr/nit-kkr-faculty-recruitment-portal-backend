@@ -8,7 +8,9 @@ const upload = require('../middleware/upload.middleware');
 // ---- candidate routes ----
 router.put('/draft/:jobId', protectUser, applicationController.saveDraft);
 router.post('/:applicationId/submit', protectUser, applicationController.submitApplication);
-router.post('/:applicationId/pay-fee', protectUser, applicationController.payFee);
+router.post('/:applicationId/pay-fee/create-order', protectUser, applicationController.createFeeOrder);
+router.post('/:applicationId/pay-fee/verify', protectUser, applicationController.verifyFeePayment);
+
 router.get('/my', protectUser, applicationController.getMyApplications);
 router.get('/my/:applicationId', protectUser, applicationController.getApplicationDetails);
 router.post(

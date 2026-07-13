@@ -42,8 +42,8 @@ const config = {
   },
 
   payment: {
-    keyId: process.env.PAYMENT_KEY_ID,
-    keySecret: process.env.PAYMENT_KEY_SECRET,
+    razorpay_keyId: process.env.RAZORPAY_KEY_ID,
+    razorpay_keySecret: process.env.RAZORPAY_KEY_SECRET,
   },
 };
 
