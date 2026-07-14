@@ -74,14 +74,12 @@ const submitApplication = async (userId, applicationId) => {
 };
 
 // payment gateway with razorpay integeration
-
+var instance = new Razorpay({ key_id: config.payment.razorpay_keyId, key_secret: config.payment.razorpay_keySecret });
 const createFeeOrder = async(userId, applicationId, paymentDetails) => {
   const application = await applicationRepository.findById(applicationId);
   if (!application) throw new AppError('Application not found', 404);
   if (String(application.user._id) !== String(userId)) throw new AppError('Not authorized', 403);
   if (application.fee.isPaid) throw new AppError('Fee already paid for this application', 400);
-  
-  var instance = new Razorpay({ key_id: config.payment.razorpay_keyId, key_secret: config.payment.razorpay_keySecret });
   
   const order = await instance.orders.create({
     amount: parseInt(paymentDetails.amount), // in paise
