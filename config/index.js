@@ -45,6 +45,10 @@ const config = {
     razorpay_keyId: process.env.RAZORPAY_KEY_ID,
     razorpay_keySecret: process.env.RAZORPAY_KEY_SECRET,
   },
+
+  captcha: {
+    redis_url : process.env.REDIS_URL,
+  },
 };
 
 module.exports = config;

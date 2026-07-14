@@ -98,7 +98,6 @@ const verifyFeePayment = async(userId, applicationId, paymentDetails) => {
     .digest("hex");
 
   if (generatedSignature === paymentDetails.razorpay_signature) {
-    console.log("hello");
     const updated = await applicationRepository.updateById(applicationId, {
       'fee.isPaid': true,
       'fee.paidDate': new Date(),

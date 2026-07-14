@@ -2,9 +2,9 @@
 const authService = require('../service/auth.service');
 const captchaService = require('../service/captcha.service');
 
-const getCaptcha = (req, res, next) => {
+const getCaptcha = async (req, res, next) => {
   try {
-    const { captchaId, svg } = captchaService.generateCaptcha();
+    const { captchaId, svg } = await captchaService.generateCaptcha();
     res.status(200).json({ success: true, captchaId, svg });
   } catch (err) {
     next(err);
@@ -56,7 +56,7 @@ const login = async (req, res, next) => {
     if (!email || !password || !captchaId || !captchaInput) {
       return res.status(400).json({ success: false, message: 'Email, password and captcha are required' });
     }
-    const isCaptchaValid = captchaService.verifyCaptcha(captchaId, captchaInput);
+    const isCaptchaValid = await captchaService.verifyCaptcha(captchaId, captchaInput);
     if (!isCaptchaValid) {
       return res.status(400).json({ success: false, message: 'Incorrect captcha. Please try again.' });
     }
