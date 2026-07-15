@@ -1,5 +1,6 @@
 // controller/application.controller.js
 const applicationService = require('../service/application.service');
+const { uploadToCloudinary } = require('../utils/cloudinary');
 
 const saveDraft = async (req, res, next) => {
   try {
@@ -59,7 +60,7 @@ const getApplicationDetails = async (req, res, next) => {
 const uploadDocument = async (req, res, next) => {
   try {
     if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded' });
-    const fileUrl = `/uploads/${req.file.filename}`;
+    const fileUrl = await uploadToCloudinary(req.file.path, 'documents');
     const application = await applicationService.uploadShortlistDocument(
       req.user.id,
       req.params.applicationId,
@@ -105,7 +106,7 @@ const scheduleInterview = async (req, res, next) => {
 const issueOfferLetter = async (req, res, next) => {
   try {
     if (!req.file) return res.status(400).json({ success: false, message: 'Offer letter file is required' });
-    const offerLetterUrl = `/uploads/${req.file.filename}`;
+    const offerLetterUrl = await uploadToCloudinary(req.file.path, 'offer-letters');
     const application = await applicationService.issueOfferLetter(req.params.applicationId, offerLetterUrl);
     res.status(200).json({ success: true, message: 'Offer letter issued successfully', application });
   } catch (err) {
