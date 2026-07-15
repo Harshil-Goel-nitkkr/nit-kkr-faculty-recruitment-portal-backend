@@ -1,25 +1,39 @@
 // config/mailer.js
-const nodemailer = require('nodemailer');
+const AppError = require('../utils/AppError');
 const config = require('./index');
+const Mailjet = require ('node-mailjet');
 
-const transporter = nodemailer.createTransport({
-  host: config.mail.host,
-  port: config.mail.port,
-  secure: config.mail.port === 465,
-  auth: {
-    user: config.mail.user,
-    pass: config.mail.pass,
-  },
-});
 
 const sendMail = async ({ to, subject, html, text }) => {
-  return transporter.sendMail({
-    from: config.mail.from,
-    to,
-    subject,
-    html,
-    text,
-  });
+  
+  const mailjet = Mailjet.apiConnect(config.mailjet.api_key_public, config.mailjet.api_key_private);
+  const request = mailjet
+  .post("send", {'version': 'v3'})
+  .request({
+        "FromEmail":"harshilgoel2007@gmail.com",
+        "FromName":"NIT KKR FACULTY RECRUITMENT PORTAL",
+        "Recipients":[
+          {
+            "Email":to,
+          }
+        ],
+        "Subject":subject,
+        "Text-part":text,
+        "Html-part":html
+      });
+
+  request.then((result) => {
+    return result.body;
+  })
+	.catch((err) => {
+		throw new AppError('unable to send email',500);
+	})
+
 };
 
-module.exports = { transporter, sendMail };
+module.exports = {sendMail };
+
+
+
+
+

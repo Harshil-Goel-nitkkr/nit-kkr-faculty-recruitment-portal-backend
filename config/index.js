@@ -55,6 +55,11 @@ const config = {
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET,
 
+  },
+ 
+  mailjet: {
+    api_key_public: process.env.MAILJET_API_KEY_PUBLIC,
+    api_key_private: process.env.MAILJET_API_KEY_PRIVATE,
   }
 };
 
