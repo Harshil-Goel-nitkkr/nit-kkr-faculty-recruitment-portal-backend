@@ -67,7 +67,7 @@ const login = async (req, res, next) => {
     res.cookie('nitkkr_token', result.token, {
       httpOnly: true,
       secure: true,
-      sameSite: 'lax',
+      sameSite: 'none',
       maxAge: config.cookie.maxAgeDays * 24 * 60 * 60 * 1000,
     });
 
@@ -79,7 +79,7 @@ const login = async (req, res, next) => {
 };
 
 const logout = (req, res) => {
-  res.clearCookie('nitkkr_token', { httpOnly: true, sameSite: 'lax', secure: config.env === 'production' });
+  res.clearCookie('nitkkr_token', { httpOnly: true, sameSite: 'none', secure: config.env === 'production' });
   res.status(200).json({ success: true, message: 'Logged out successfully' });
 };
 

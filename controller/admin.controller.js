@@ -12,7 +12,7 @@ const login = async (req, res, next) => {
     res.cookie('nitkkr_admin_token', result.token, {
     httpOnly: true,
     secure: config.env === 'production',
-    sameSite: 'lax',
+    sameSite: "none",
     maxAge: config.cookie.maxAgeDays * 24 * 60 * 60 * 1000,
   });
   res.status(200).json({ success: true, admin: result.admin });
@@ -22,7 +22,7 @@ const login = async (req, res, next) => {
 };
 
 const logout = (req, res) => {
-  res.clearCookie('nitkkr_admin_token', { httpOnly: true, sameSite: 'lax', secure: config.env === 'production' });
+  res.clearCookie('nitkkr_admin_token', { httpOnly: true, sameSite: 'none', secure: config.env === 'production' });
   res.status(200).json({ success: true, message: 'Logged out successfully' });
 };
 
