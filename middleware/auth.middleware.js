@@ -4,13 +4,12 @@ const AppError = require('../utils/AppError');
 
 const protectUser = (req, res, next) => {
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const token = req.cookies?.nitkkr_token;
+    if (!token) {
       throw new AppError('Not authenticated. Please login.', 401);
     }
-    const token = authHeader.split(' ')[1];
     const decoded = verifyUserToken(token);
-    req.user = decoded; // { id, email }
+    req.user = decoded;
     next();
   } catch (err) {
     next(new AppError('Invalid or expired session. Please login again.', 401));
@@ -19,11 +18,10 @@ const protectUser = (req, res, next) => {
 
 const protectAdmin = (req, res, next) => {
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw new AppError('Not authenticated. Please login as admin.', 401);
+    const token = req.cookies?.nitkkr_admin_token;
+    if (!token) {
+      throw new AppError('Not authenticated. Please login.', 401);
     }
-    const token = authHeader.split(' ')[1];
     const decoded = verifyAdminToken(token);
     req.admin = decoded; // { id, email, role }
     next();

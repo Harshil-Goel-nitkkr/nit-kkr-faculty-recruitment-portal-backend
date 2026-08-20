@@ -1,7 +1,6 @@
 // service/auth.service.js
 const bcrypt = require('bcryptjs');
 const userRepository = require('../repository/user.repository');
-const otpRepository = require('../repository/otp.repository');
 const { sendMail } = require('../config/mailer');
 const config = require('../config');
 const generateOtp = require('../utils/generateOtp');
@@ -33,10 +32,9 @@ const sendRegistrationOtp = async (email) => {
 const verifyRegistrationOtp = async (email, otp) => {
   const record = await otpRepository.findLatestValid(email, 'REGISTER');
   if (!record) throw new AppError('OTP not found or already used. Please request a new one.', 400);
-  if (record.expiresAt < new Date()) throw new AppError('OTP has expired. Please request a new one.', 400);
   if (record.otp !== otp) throw new AppError('Incorrect OTP', 400);
 
-  await otpRepository.markVerified(record._id);
+  await otpRepository.markVerified(email, 'REGISTER');
   return { message: 'Email verified successfully' };
 };
 
@@ -49,8 +47,7 @@ const completeRegistration = async (data) => {
   const verifiedOtp = await otpRepository.findLatestValid(email, 'REGISTER');
   // after markVerified, verified=true, so findLatestValid (verified:false) returns null.
   // We re-check using a direct query to ensure verification truly happened.
-  const Otp = require('../schema/Otp.schema');
-  const wasVerified = await Otp.findOne({ email: email.toLowerCase(), purpose: 'REGISTER', verified: true }).sort({ createdAt: -1 });
+  const wasVerified = await otpRepository.findVerified(email, 'REGISTER');
   if (!wasVerified) throw new AppError('Please verify your email with OTP before registering', 400);
 
   const existing = await userRepository.findByEmail(email);
@@ -113,7 +110,6 @@ const sendForgotPasswordOtp = async (email) => {
 const resetPasswordWithOtp = async (email, otp, newPassword) => {
   const record = await otpRepository.findLatestValid(email, 'FORGOT_PASSWORD');
   if (!record) throw new AppError('OTP not found or already used', 400);
-  if (record.expiresAt < new Date()) throw new AppError('OTP has expired', 400);
   if (record.otp !== otp) throw new AppError('Incorrect OTP', 400);
 
   const user = await userRepository.findByEmail(email);
@@ -121,7 +117,7 @@ const resetPasswordWithOtp = async (email, otp, newPassword) => {
 
   const hashedPassword = await bcrypt.hash(newPassword, 10);
   await userRepository.updatePassword(user._id, hashedPassword);
-  await otpRepository.markVerified(record._id);
+  await await otpRepository.markVerified(email, 'FORGOT_PASSWORD');
   await otpRepository.deleteAllForEmail(email, 'FORGOT_PASSWORD');
 
   return { message: 'Password reset successfully. Please login with your new password.' };

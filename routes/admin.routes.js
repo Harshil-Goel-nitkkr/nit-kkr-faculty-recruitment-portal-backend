@@ -7,5 +7,6 @@ const { protectAdmin, requireSuperAdmin } = require('../middleware/auth.middlewa
 router.post('/login', adminController.login);
 router.get('/dashboard-stats', protectAdmin, adminController.getDashboardStats);
 router.post('/add-admin', protectAdmin, requireSuperAdmin, adminController.addAdmin);
+router.post('/logout', protectAdmin, adminController.logout);
 
 module.exports = router;

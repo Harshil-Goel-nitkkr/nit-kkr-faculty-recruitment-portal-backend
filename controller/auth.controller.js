@@ -1,6 +1,7 @@
 // controller/auth.controller.js
 const authService = require('../service/auth.service');
 const captchaService = require('../service/captcha.service');
+const config = require('../config');
 
 const getCaptcha = async (req, res, next) => {
   try {
@@ -56,15 +57,30 @@ const login = async (req, res, next) => {
     if (!email || !password || !captchaId || !captchaInput) {
       return res.status(400).json({ success: false, message: 'Email, password and captcha are required' });
     }
-    const isCaptchaValid = await captchaService.verifyCaptcha(captchaId, captchaInput);
+    const isCaptchaValid = captchaService.verifyCaptcha(captchaId, captchaInput);
     if (!isCaptchaValid) {
       return res.status(400).json({ success: false, message: 'Incorrect captcha. Please try again.' });
     }
     const result = await authService.login(email, password);
-    res.status(200).json({ success: true, ...result });
+
+    // set http-only cookie
+    res.cookie('nitkkr_token', result.token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      maxAge: config.cookie.maxAgeDays * 24 * 60 * 60 * 1000,
+    });
+
+    // do NOT send token in body
+    res.status(200).json({ success: true, user: result.user });
   } catch (err) {
     next(err);
   }
+};
+
+const logout = (req, res) => {
+  res.clearCookie('nitkkr_token', { httpOnly: true, sameSite: 'lax', secure: config.env === 'production' });
+  res.status(200).json({ success: true, message: 'Logged out successfully' });
 };
 
 const forgotPasswordRequestOtp = async (req, res, next) => {
@@ -115,4 +131,5 @@ module.exports = {
   forgotPasswordRequestOtp,
   forgotPasswordReset,
   changePassword,
+  logout
 };

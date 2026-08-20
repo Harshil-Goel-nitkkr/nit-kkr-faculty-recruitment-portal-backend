@@ -18,6 +18,10 @@ const config = {
     adminExpiresIn: process.env.ADMIN_JWT_EXPIRES_IN || '1d',
   },
 
+  cookie: {
+  maxAgeDays: Number(process.env.COOKIE_MAX_AGE_DAYS || 7),
+  },
+
   otp: {
     expiryMinutes: Number(process.env.OTP_EXPIRY_MINUTES || 10),
   },
