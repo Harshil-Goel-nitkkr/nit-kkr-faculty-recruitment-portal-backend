@@ -9,7 +9,7 @@ const getCaptchaId = ()=>{
 }
 
 const generateCaptcha = async () => {
-  const captcha = svgCaptcha.create({ size: 5, noise: 3, color: true, width: 150, height: 50 });
+  const captcha = svgCaptcha.create({ size: 5, noise: 3, color: false, width: 150, height: 50  });
   const captchaId = getCaptchaId();
   const resp =  await client.set(captchaId, captcha.text.toLowerCase(), 'EX', CAPTCHA_TTL);
   if(resp != 'OK') throw new AppError('captcha saving failed',500);
