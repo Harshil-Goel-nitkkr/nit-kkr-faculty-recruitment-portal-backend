@@ -6,6 +6,7 @@ const config = require('../config');
 const generateOtp = require('../utils/generateOtp');
 const { signUserToken } = require('../utils/token');
 const AppError = require('../utils/AppError');
+const otpRepository = require('../repository/otp.repository');
 
 // Step 1 of registration: validate email isn't already used, generate + email OTP
 const sendRegistrationOtp = async (email) => {

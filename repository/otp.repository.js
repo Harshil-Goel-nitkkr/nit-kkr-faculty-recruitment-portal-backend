@@ -1,5 +1,5 @@
 // repository/otp.repository.js
-const redis = require('../config/redis');
+const {redisClient: redis} = require('../config/redis');
 const config = require('../config');
 
 const makeKey = (email, purpose) => `otp:${email.toLowerCase()}:${purpose}`;
